@@ -1,41 +1,27 @@
-import os
 import requests
-import json
+import os
 
+TOKEN_ENDPOINT = "https://ShortChat.elio27.repl.co/api/gen_token?name="
+POST_ENDPOINT = "https://ShortChat.elio27.repl.co/api/chat/post"
+READ_ENDPOINT = "https://ShortChat.elio27.repl.co/api/chat"
 
-def send_message(mess):
+if not os.path.exists("token.txt"):
+	name = input("Welcome to the ShortChat Python script!\nChoose a username: ")
+	token_url = TOKEN_ENDPOINT + name
+	token = requests.get(token_url).text
 
-    with open("token.json", 'r') as token_file:
+	with open("token.txt", "w") as f:
+		f.write(token)
 
-        token_file_json = json.loads(token_file.read())
+with open("token.txt") as token:
+	message = ""
 
-        url = 'https://ShortChat.elio27.repl.co/api/chat/post'
-        myobj = {"uuid": f"{token_file_json['token']}", "message": f"{mess}"}
+	while message != "exit":
+		print(requests.get(READ_ENDPOINT).text.strip() + "\n")
 
-        requests.post(url, data=myobj)
+		message = input("Send a message or refresh by pressing enter.\n>>> ")
 
-
-if not os.path.exists("token.json"):
-
-    name = str(input("Welcome to ShortChat python script !\nChoose a username : "))
-    token_url = f"https://ShortChat.elio27.repl.co/api/gen_token?name={name}"
-    token = requests.get(token_url).text
-
-    token_dict = {
-        "name": f"{name}",
-        "token": f"{token}"
-    }
-
-    token_json = json.dumps(token_dict)
-
-    f = open("token.json", 'w')
-    f.write(token_json)
-    f.close()
-
-while True:
-    chat = requests.get("https://ShortChat.elio27.repl.co/api/chat")
-    print(chat.text)
-    message = input("Send a mesage or refresh with 'enter'.\n>>> ")
-
-    if message:
-        send_message(message)
+		if message:
+			requests.post(POST_ENDPOINT, data = {"uuid": token.read(), "message": message})
+		
+		os.system("cls" if os.name == "nt" else "clear")
